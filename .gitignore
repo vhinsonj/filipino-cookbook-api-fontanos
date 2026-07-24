@@ -1,0 +1,6 @@
+# Ignore the Composer dependencies folder
+/vendor/
+
+# Ignore configuration files with real credentials
+config.php
+.env
