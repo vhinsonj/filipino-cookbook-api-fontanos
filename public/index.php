@@ -21,8 +21,8 @@ $app->addErrorMiddleware(false, true, true);     // (displayErrorDetails, logErr
 // ====== DATABASE CONNECTION (PDO) ======
 function getDB() {
     $dbhost = 'localhost';
-    $dbuser = 'root'; 
-    $dbpass = '';     
+    $dbuser = 'YOUR_DATABASE_USERNAME'; 
+    $dbpass = 'YOUR_DATABASE_PASSWORD';     
     $dbname = 'filipino_cookbook_api';
 
     $mysql_conn_string = "mysql:host=$dbhost;dbname=$dbname;charset=utf8mb4";
