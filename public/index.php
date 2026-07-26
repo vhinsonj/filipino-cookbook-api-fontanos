@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
@@ -14,13 +16,13 @@ $app->setBasePath('/filipino-cookbook-api/public');
 // Middleware to parse JSON requests
 $app->addBodyParsingMiddleware();               //Slim automatically read incoming JSON data
 $app->addRoutingMiddleware();                   //Slim matches the incoming URL to the defined routes
-$app->addErrorMiddleware(true, true, true);     // (displayErrorDetails, logErrors, logErrorDetails)
+$app->addErrorMiddleware(false, true, true);     // (displayErrorDetails, logErrors, logErrorDetails)
 
 // ====== DATABASE CONNECTION (PDO) ======
 function getDB() {
     $dbhost = 'localhost';
-    $dbuser = 'YOUR_DATABASE_USERNAME'; 
-    $dbpass = 'YOUR_DATABASE_PASSWORD';     
+    $dbuser = 'root'; 
+    $dbpass = '';     
     $dbname = 'filipino_cookbook_api';
 
     $mysql_conn_string = "mysql:host=$dbhost;dbname=$dbname;charset=utf8mb4";
@@ -31,30 +33,64 @@ function getDB() {
     return $dbConnection;
 }
 
-// ====== TOKEN-BASED SECURITY MIDDLEWARE ======
-$tokenAuthMiddleware = function (Request $request, RequestHandler $handler) {
-    // Check for the Authorization header
-    $authHeader = $request->getHeaderLine('Authorization');
-    $validToken = 'Bearer dmmmsu-cookbook-token-2026';
+// ====== RATE LIMITING MIDDLEWARE ======
+$rateLimitMiddleware = function (Request $request, RequestHandler $handler) {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $time = time();
+    $limit = 60; // Max 60 requests
+    $window = 60; // Per 60 seconds
 
-    // If token is missing or incorrect
-    if (empty($authHeader) || $authHeader !== $validToken) {
-        $response = new \Slim\Psr7\Response();
-        
-        $errorPayload = json_encode([
-            "status" => "error",
-            "message" => "Unauthorized access. Valid API token is required."
-        ]);
-
-        $response->getBody()->write($errorPayload);
-        
-        // Return 401 Unauthorized status and ensure JSON format 
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(401);
+    if (!isset($_SESSION['rate_limit'][$ip])) {
+        $_SESSION['rate_limit'][$ip] = [];
     }
 
-    // If token is valid, proceed to the actual route
+    // Filter out requests older than our 60-second window
+    $_SESSION['rate_limit'][$ip] = array_filter($_SESSION['rate_limit'][$ip], function($timestamp) use ($time, $window) {
+        return ($time - $timestamp) < $window;
+    });
+
+    // Block request if over the limit
+    if (count($_SESSION['rate_limit'][$ip]) >= $limit) {
+        $response = new \Slim\Psr7\Response();
+        $errorPayload = json_encode(["status" => "error", "message" => "Too many requests. Please try again later."]);
+        $response->getBody()->write($errorPayload);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
+    }
+
+    // Log this request timestamp
+    $_SESSION['rate_limit'][$ip][] = $time;
+    return $handler->handle($request);
+};
+
+// Apply rate limiting to the entire app
+$app->add($rateLimitMiddleware);
+
+// ====== ROLE-BASED ENDPOINT ACCESS MIDDLEWARE ====== 
+$tokenAuthMiddleware = function (Request $request, RequestHandler $handler) {
+    $authHeader = $request->getHeaderLine('Authorization');
+    
+    // Define Roles
+    $adminToken = 'Bearer dmmmsu-cookbook-token-2026';
+    $userToken = 'Bearer dmmmsu-user-token-read-only';
+
+    $role = null;
+
+    if ($authHeader === $adminToken) {
+        $role = 'admin';
+    } elseif ($authHeader === $userToken) {
+        $role = 'user';
+    }
+
+    if (!$role) {
+        $response = new \Slim\Psr7\Response();
+        $errorPayload = json_encode(["status" => "error", "message" => "Unauthorized access. Valid API token is required."]);
+        $response->getBody()->write($errorPayload);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+    }
+
+    // Attach the assigned role to the request so downstream routes know who is calling
+    $request = $request->withAttribute('role', $role);
+    
     return $handler->handle($request);
 };
 
@@ -176,31 +212,62 @@ $app->group('/api', function (\Slim\Routing\RouteCollectorProxy $group) {
 
     // ====== Add New Food ======
     $group->post('/foods', function (Request $request, Response $response, $args) {
-        $db = getDB();
-        $data = $request->getParsedBody(); // Gets the required JSON request body 
+        // --- ROLE-BASED ACCESS CHECK ---
+        $role = $request->getAttribute('role');
+        if ($role !== 'admin') {
+            $response->getBody()->write(json_encode(["status" => "error", "message" => "Forbidden. Only administrators can add new foods."]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
         
+        $data = $request->getParsedBody(); // Gets the required JSON request body
+
+        // --- 4. INPUT VALIDATION ---
+        if (empty($data['food_name']) || empty($data['category_id']) || empty($data['origin_id']) || empty($data['instructions'])) {
+            $response->getBody()->write(json_encode(["status" => "error", "message" => "Missing required fields (food_name, category_id, origin_id, instructions)."]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        // --- 5. INPUT SANITIZATION ---
+        // Strip HTML tags and convert special characters to prevent Cross-Site Scripting (XSS)
+        $clean_food_name = htmlspecialchars(strip_tags($data['food_name']));
+        $clean_instructions = htmlspecialchars(strip_tags($data['instructions']));
+        
+        // Ensure IDs are strictly integers
+        $clean_category_id = filter_var($data['category_id'], FILTER_VALIDATE_INT);
+        $clean_origin_id = filter_var($data['origin_id'], FILTER_VALIDATE_INT);
+
+        if (!$clean_category_id || !$clean_origin_id) {
+            $response->getBody()->write(json_encode(["status" => "error", "message" => "Category and Origin IDs must be valid numbers."]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        $db = getDB();
+          
+        
+        // Use sanitized variables for database execution
         $stmt = $db->prepare("INSERT INTO foods (food_name, category_id, origin_id, instructions) VALUES (:food_name, :category_id, :origin_id, :instructions)");
         $stmt->execute([
-            'food_name' => $data['food_name'],
-            'category_id' => $data['category_id'],
-            'origin_id' => $data['origin_id'],
-            'instructions' => $data['instructions']
+            'food_name' => $clean_food_name,
+            'category_id' => $clean_category_id,
+            'origin_id' => $clean_origin_id,
+            'instructions' => $clean_instructions
         ]);
         
         // Grab the ID of the food record that was just inserted
         $foodId = $db->lastInsertId();
         
-        // Loop through the provided array of ingredient_ids and insert them into the relational table 
         if (!empty($data['ingredient_ids'])) {
             $ingStmt = $db->prepare("INSERT INTO food_ingredients (food_id, ingredient_id) VALUES (:food_id, :ingredient_id)");
             foreach ($data['ingredient_ids'] as $ingId) {
-                $ingStmt->execute(['food_id' => $foodId, 'ingredient_id' => $ingId]);
+                // Ensure ingredient ID is also an integer before inserting
+                $clean_ing_id = filter_var($ingId, FILTER_VALIDATE_INT);
+                if ($clean_ing_id) {
+                    $ingStmt->execute(['food_id' => $foodId, 'ingredient_id' => $clean_ing_id]);
+                }
             }
         }
 
-        $payload = json_encode(["status" => "success", "message" => "Food added successfully."]); 
-        $response->getBody()->write($payload);
-        // Return 201 Created status 
+        $response->getBody()->write(json_encode(["status" => "success", "message" => "Food added successfully."])); 
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201); 
     });
 
