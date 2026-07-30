@@ -1,80 +1,61 @@
 # Secured Filipino Cookbook API
 
-A RESTful API built with the Slim Framework for retrieving and managing Filipino food recipes, categories, and ingredients. 
+A RESTful API built with the Slim Framework for retrieving and managing Filipino food recipes, categories, and ingredients
 
 ## Repository Contents
-- Complete Slim Framework API source code
-- Exported SQL database file (`database/filipino_foods_relational.sql`)
-- Thunder Client testing screenshots
+* Complete Slim Framework API source code.
+* Exported SQL database file (`database/filipino_foods_relational.sql`).
+* Thunder Client testing screenshots.
+
+## API Description
+The Filipino Cookbook API is a secured REST API that provides structured information about traditional Filipino dishes, including their categories, regional origins, ingredients, and cooking instructions.
+* **Purpose:** To give developers a simple, structured way to retrieve data about Filipino foods and to provide a secure, production-ready application protected against unauthorized manipulation.
+* **Intended users:** Students and developers building client applications that need Filipino food data.
+* **Main functions:** Retrieve all foods, retrieve a single food, search foods by name, retrieve categories, retrieve ingredients, and add new foods.
+* **Technologies used:** PHP, Slim Framework 4, MySQL, Composer, JSON, XAMPP, Git, and GitHub.
 
 ## Prerequisites
-- XAMPP (or any local PHP/MySQL server)
-- Composer installed globally
+* XAMPP (or any local PHP/MySQL server).
+* Composer installed globally.
 
 ## Configuration Instructions
 1. **Clone the repository:**
-   `git clone https://github.com/USERNAME/filipino-cookbook-api-surname.git`
+   `git clone https://github.com/vhinsonj/filipino-cookbook-api-fontanos.git`.
 2. **Install Dependencies:**
-   Open the terminal in the project folder and run: `composer install`
+   Open the terminal in the project folder and run: `composer install`.
 3. **Database Setup:**
-   - Open phpMyAdmin.
-   - Create a new database named `filipino_cookbook_api`.
-   - Import the `database/filipino_foods_relational.sql` file into this database.
+   * Open phpMyAdmin.
+   * Create a new database named `filipino_cookbook_api`.
+   * Import the `database/filipino_foods_relational.sql` file into this database.
 4. **Configure Credentials:**
-   - Open `public/index.php`.
-   - Update the `$dbuser` and `$dbpass` variables in the `getDB()` function with your local database credentials (do not commit actual passwords to GitHub).
+   * Open `public/index.php`.
+   * Update the `$dbuser` and `$dbpass` variables in the `getDB()` function with your local database credentials (do not commit actual passwords to GitHub).
 
 ## API Documentation
-All secured endpoints require the following HTTP Header for access:
-`Authorization: Bearer dmmmsu-cookbook-token-2026`
+All secured endpoints require an HTTP Header for access depending on the user's role. 
+* **Admin Token (Read/Write):** `Authorization: Bearer dmmmsu-cookbook-token-2026`.
+* **User Token (Read-Only):** `Authorization: Bearer dmmmsu-user-token-read-only`.
 
 ### Endpoints
-* **GET `/`** (Public) - Welcome message
-* **GET `/api/foods`** (Secured) - Retrieve all Filipino foods with categories, origins, and ingredients
-* **GET `/api/foods/{id}`** (Secured) - Retrieve a specific food by its ID
-* **GET `/api/foods/search/{name}`** (Secured) - Search for foods by name
-* **GET `/api/categories`** (Secured) - Retrieve all categories
-* **GET `/api/ingredients`** (Secured) - Retrieve all ingredients
-* **POST `/api/foods`** (Secured) - Add a new food record
+* **GET `/`** (Public) - Welcome message.
+* **GET `/api/foods`** (Secured) - Retrieve all Filipino foods with categories, origins, and ingredients.
+* **GET `/api/foods/{id}`** (Secured) - Retrieve a specific food by its ID.
+* **GET `/api/foods/search/{name}`** (Secured) - Search for foods by name.
+* **GET `/api/categories`** (Secured) - Retrieve all categories.
+* **GET `/api/ingredients`** (Secured) - Retrieve all ingredients.
+* **POST `/api/foods`** (Secured, Admin Only) - Add a new food record.
 
-# Secured Filipino Cookbook API
-
-A RESTful API built with the Slim Framework for retrieving and managing Filipino food recipes, categories, and ingredients. 
-
-## Repository Contents
-- Complete Slim Framework API source code
-- Exported SQL database file (`database/filipino_foods_relational.sql`)
-- Thunder Client testing screenshots
-
-## Prerequisites
-- XAMPP (or any local PHP/MySQL server)
-- Composer installed globally
-
-## Configuration Instructions
-1. **Clone the repository:**
-   `git clone https://github.com/USERNAME/filipino-cookbook-api-surname.git`
-2. **Install Dependencies:**
-   Open the terminal in the project folder and run: `composer install`
-3. **Database Setup:**
-   - Open phpMyAdmin.
-   - Create a new database named `filipino_cookbook_api`.
-   - Import the `database/filipino_foods_relational.sql` file into this database.
-4. **Configure Credentials:**
-   - Open `public/index.php`.
-   - Update the `$dbuser` and `$dbpass` variables in the `getDB()` function with your local database credentials (do not commit actual passwords to GitHub).
-
-## API Documentation
-All secured endpoints require the following HTTP Header for access:
-`Authorization: Bearer dmmmsu-cookbook-token-2026`
-
-### Endpoints
-* **GET `/`** (Public) - Welcome message
-* **GET `/api/foods`** (Secured) - Retrieve all Filipino foods with categories, origins, and ingredients
-* **GET `/api/foods/{id}`** (Secured) - Retrieve a specific food by its ID
-* **GET `/api/foods/search/{name}`** (Secured) - Search for foods by name
-* **GET `/api/categories`** (Secured) - Retrieve all categories
-* **GET `/api/ingredients`** (Secured) - Retrieve all ingredients
-* **POST `/api/foods`** (Secured) - Add a new food record
+## HTTP Status Codes
+| Status Code | Meaning |
+|---|---|
+| 200 | Request completed successfully. |
+| 201 | Resource created successfully. |
+| 400 | Invalid request or missing required fields. |
+| 401 | Missing or invalid authentication. |
+| 403 | Forbidden access (e.g., standard user attempting to add food). |
+| 404 | Requested resource was not found. |
+| 429 | Too many requests (Rate limit exceeded). |
+| 500 | Internal server error. |
 
 ---
 
@@ -87,7 +68,7 @@ Upgraded the base Filipino Cookbook API by integrating multiple layers of securi
 To transform the API into a secure, production-ready application by protecting against brute-force attacks, Cross-Site Scripting (XSS), unauthorized data manipulation, and sensitive system data exposure.
 
 **Files modified**
-* `public/index.php`
+* `public/index.php`.
 
 **Endpoints added**
 No new endpoints were added; however, existing endpoints were heavily fortified with enhanced security logic and role-based access controls.
@@ -125,3 +106,9 @@ No new endpoints were added; however, existing endpoints were heavily fortified 
 
 *Role-Based Access:*
 ![Role-Based Access](img/Role-Based-Access-Test.png)
+
+## Developer Information
+* **Name:** John Vhinson Fontanos
+* **Course & Institution:** Don Mariano Marcos Memorial State University, College of Information Technology
+* **GitHub username:** vhinsonj
+* **Repository:** https://github.com/vhinsonj/filipino-cookbook-api-fontanos
