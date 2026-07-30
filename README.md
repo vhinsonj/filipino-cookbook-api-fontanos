@@ -48,7 +48,7 @@ The Filipino Cookbook API is a secured REST API that provides structured informa
 1. Clone the repository:
 
 ```
-git clone [https://github.com/vhinsonj/filipino-cookbook-api-fontanos.git](https://github.com/vhinsonj/filipino-cookbook-api-fontanos.git)
+git clone https://github.com/vhinsonj/filipino-cookbook-api-fontanos.git
 ```
 
 2. Navigate into the project folder:
