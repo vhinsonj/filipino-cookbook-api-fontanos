@@ -70,7 +70,7 @@ composer install
 
 ## Database Setup
 - **Database name:** `filipino_cookbook_api`
-- **SQL file:** `database/filipino_foods_relational.sql`
+- **SQL file:** `database/filipino_cookbook_api.sql`
 
 **Import instructions:**
 1. Open phpMyAdmin (`http://localhost/phpmyadmin`)
@@ -83,6 +83,11 @@ composer install
 ```
 categories -> foods <- origins
 foods -> food_ingredients <- ingredients
+```
+
+## Base URL
+```
+http://localhost/filipino-cookbook-api/public/api
 ```
 
 ## API Documentation
