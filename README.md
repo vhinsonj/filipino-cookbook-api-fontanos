@@ -93,8 +93,8 @@ http://localhost/filipino-cookbook-api/public/api
 ## API Documentation
 All secured endpoints require an HTTP Header for access depending on the user's role. 
 
-- **Admin Token (Read/Write):** `Authorization: Bearer dmmmsu-cookbook-token-2026`
-- **User Token (Read-Only):** `Authorization: Bearer dmmmsu-user-token-read-only`
+- **Admin Token (Read/Write):** `Authorization: Bearer YOUR_ACCESS_TOKEN`
+- **User Token (Read-Only):** `Authorization: Bearer YOUR_ACCESS_TOKEN`
 
 ### Endpoints
 - **GET `/`** (Public) - Welcome message.

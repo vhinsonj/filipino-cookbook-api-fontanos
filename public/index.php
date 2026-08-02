@@ -70,8 +70,8 @@ $tokenAuthMiddleware = function (Request $request, RequestHandler $handler) {
     $authHeader = $request->getHeaderLine('Authorization');
     
     // Define Roles
-    $adminToken = 'Bearer dmmmsu-cookbook-token-2026';
-    $userToken = 'Bearer dmmmsu-user-token-read-only';
+    $adminToken = 'Bearer YOUR_ACCESS_TOKEN';
+    $userToken = 'Bearer YOUR_ACCESS_TOKEN';
 
     $role = null;
 
