@@ -95,6 +95,7 @@ All secured endpoints require an HTTP Header for access depending on the user's 
 
 - **Admin Token (Read/Write):** `Authorization: Bearer YOUR_ACCESS_TOKEN`
 - **User Token (Read-Only):** `Authorization: Bearer YOUR_ACCESS_TOKEN`
+Change the tokens on the ROLE-BASED ENDPOINT ACCESS MIDDLEWARE in line 73 and 74
 
 ### Endpoints
 - **GET `/`** (Public) - Welcome message.
