@@ -4,7 +4,7 @@ A RESTful API built with the Slim Framework for retrieving and managing Filipino
 
 ## Repository Contents
 - Complete Slim Framework API source code.
-- Exported SQL database file (`database/filipino_foods_relational.sql`).
+- Exported SQL database file (`database/filipino_cookbook_api.sql`).
 - Thunder Client testing screenshots.
 
 ## API Description
