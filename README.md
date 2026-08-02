@@ -76,7 +76,7 @@ composer install
 1. Open phpMyAdmin (`http://localhost/phpmyadmin`)
 2. Create a new database named `filipino_cookbook_api`
 3. Click **Import**
-4. Select `database/filipino_foods_relational.sql`
+4. Select `database/filipino_cookbook_api.sql`
 5. Click **Go**
 
 **Tables & Relationships:**
