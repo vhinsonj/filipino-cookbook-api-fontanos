@@ -14,9 +14,9 @@ $app = AppFactory::create();
 $app->setBasePath('/filipino-cookbook-api/public');
 
 // Middleware to parse JSON requests
-$app->addBodyParsingMiddleware();               //Slim automatically read incoming JSON data
-$app->addRoutingMiddleware();                   //Slim matches the incoming URL to the defined routes
-$app->addErrorMiddleware(false, true, true);     // (displayErrorDetails, logErrors, logErrorDetails)
+$app->addBodyParsingMiddleware();                   //Slim automatically read incoming JSON data
+$app->addRoutingMiddleware();                       //To match the incoming HTTP request URL to the defined routes
+$app->addErrorMiddleware(false, true, true);        // (displayErrorDetails, logErrors, logErrorDetails)
 
 // ====== DATABASE CONNECTION (PDO) ======
 function getDB() {
@@ -40,11 +40,12 @@ $rateLimitMiddleware = function (Request $request, RequestHandler $handler) {
     $limit = 60; // Max 60 requests
     $window = 60; // Per 60 seconds
 
+    // Checks if the rate limit array for the specific IP address already exists in the session.
     if (!isset($_SESSION['rate_limit'][$ip])) {
-        $_SESSION['rate_limit'][$ip] = [];
+        $_SESSION['rate_limit'][$ip] = [];  //If not, it will create a new empty array for the IP address/user
     }
 
-    // Filter out requests older than our 60-second window
+    // Filter out requests older than the 60-second window
     $_SESSION['rate_limit'][$ip] = array_filter($_SESSION['rate_limit'][$ip], function($timestamp) use ($time, $window) {
         return ($time - $timestamp) < $window;
     });
@@ -221,13 +222,13 @@ $app->group('/api', function (\Slim\Routing\RouteCollectorProxy $group) {
         
         $data = $request->getParsedBody(); // Gets the required JSON request body
 
-        // --- 4. INPUT VALIDATION ---
+        // --- INPUT VALIDATION ---
         if (empty($data['food_name']) || empty($data['category_id']) || empty($data['origin_id']) || empty($data['instructions'])) {
             $response->getBody()->write(json_encode(["status" => "error", "message" => "Missing required fields (food_name, category_id, origin_id, instructions)."]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
 
-        // --- 5. INPUT SANITIZATION ---
+        // --- INPUT SANITIZATION ---
         // Strip HTML tags and convert special characters to prevent Cross-Site Scripting (XSS)
         $clean_food_name = htmlspecialchars(strip_tags($data['food_name']));
         $clean_instructions = htmlspecialchars(strip_tags($data['instructions']));
